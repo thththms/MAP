@@ -58,7 +58,8 @@ class Map(QWidget):
         self.image.resize(600, 450)
 
     def closeEvent(self, event):
-        os.remove(self.map_file)
+        # os.remove(self.map_file)
+        pass
 
 
 if __name__ == '__main__':
