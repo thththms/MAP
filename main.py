@@ -10,13 +10,33 @@ from PyQt5.QtCore import Qt
 class Map(QWidget):
     def __init__(self):
         super().__init__()
-        self.request = "https://static-maps.yandex.ru/1.x/?ll=37.677751,55.757718&spn=0.016457,0.00619&l=map"
-        self.getImage()
+        self.request = "https://static-maps.yandex.ru/1.x"
+        self.params = {
+            "ll": "37.530887,55.703118",
+            "spn": "0.002,0.002",
+            "l": "map"
+        }
+
         self.initUI()
+        self.updateMap(self.params)
 
-    def getImage(self):
-        response = requests.get(self.request)
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_PageUp:
+            print(1)
+            a = float(self.params['spn'].split(',')[0])
+            a = a + 0.01 if a + 0.01 < 21 else a
+            self.params['spn'] = f'{a},{a}'
+            self.updateMap(self.params)
+        if event.key() == Qt.Key_PageDown:
+            a = float(self.params['spn'].split(',')[0])
+            a = a - 0.01 if a - 0.01 > 0 else a
 
+            self.params['spn'] = f'{a},{a}'
+            self.updateMap(self.params)
+
+    def updateMap(self, params):
+        response = requests.get(self.request, params=params)
+        print(self.params['spn'])
         if not response:
             print("Ошибка выполнения запроса:")
             print(self.request)
@@ -27,15 +47,15 @@ class Map(QWidget):
         with open(self.map_file, "wb") as file:
             file.write(response.content)
 
+        self.pixmap = QPixmap(self.map_file)
+        self.image.setPixmap(self.pixmap)
+
     def initUI(self):
         self.setGeometry(100, 100, 600, 450)
         self.setWindowTitle('Карта')
-
-        self.pixmap = QPixmap(self.map_file)
         self.image = QLabel(self)
         self.image.move(0, 0)
         self.image.resize(600, 450)
-        self.image.setPixmap(self.pixmap)
 
     def closeEvent(self, event):
         os.remove(self.map_file)
